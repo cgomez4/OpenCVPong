@@ -6,8 +6,6 @@ from pygame.locals import *
 import numpy as np
 import cv2
 
-
-
 pygame.init()
 fps = pygame.time.Clock()
 
@@ -59,16 +57,25 @@ def init():
     l_score = 0
     r_score = 0
     if random.randrange(0,2) == 0:
+        # ball spawns to the right
         ball_init(True)
     else:
+        # ball spawns to the left
         ball_init(False)
 
 
 #draw function of canvas
 def draw(canvas):
+    ret, frame = cap.read() 
     global paddle1_pos, paddle2_pos, ball_pos, ball_vel, l_score, r_score
-           
-    canvas.fill(BLACK)
+    #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Display the resulting frame
+    # creates the background image by using a frame
+    frame = np.rot90(frame)
+    frame = pygame.surfarray.make_surface(frame)
+    canvas.blit(frame, (0,0))
+  
     pygame.draw.line(canvas, WHITE, [WIDTH / 2, 0],[WIDTH / 2, HEIGHT], 1)
     pygame.draw.line(canvas, WHITE, [PAD_WIDTH, 0],[PAD_WIDTH, HEIGHT], 1)
     pygame.draw.line(canvas, WHITE, [WIDTH - PAD_WIDTH, 0],[WIDTH - PAD_WIDTH, HEIGHT], 1)
@@ -115,8 +122,8 @@ def draw(canvas):
         
     if int(ball_pos[0]) >= int(WIDTH + 1 - BALL_RADIUS - PAD_WIDTH) and int(ball_pos[1]) in range(int(paddle2_pos[1] - HALF_PAD_HEIGHT),int(paddle2_pos[1] + HALF_PAD_HEIGHT),1):
         ball_vel[0] = -ball_vel[0]
-        ball_vel[0] *= 1.5
-        ball_vel[1] *= 1.5
+        ball_vel[0] *= 3.5
+        ball_vel[1] *= 3.5
     elif int(ball_pos[0]) >= WIDTH + 1 - BALL_RADIUS - PAD_WIDTH:
         l_score += 1
         ball_init(False)
@@ -162,34 +169,6 @@ while cap.isOpened():
     ret, frame = cap.read()
 
     fist_cascade = cv2.CascadeClassifier('fist.xml')
-
-    finger_cascade = cv2.CascadeClassifier('fingerdec.xml')
-    #palm_cascade = cv2.CascadeClassifier('palm.xml')
-    gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-
-    fists = fist_cascade.detectMultiScale(gray, 1.3, 5)
-    finger = finger_cascade.detectMultiScale(gray, 1.3, 5)
-
-    #Controls Left paddle with fist
-    for (x, y, w ,h) in fists:
-        cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0),2)
-        if y < HALF_PAD_HEIGHT:
-            paddle1_pos[1] = HALF_PAD_HEIGHT
-        if y > HEIGHT:
-            paddle1_pos[1] = HEIGHT - HALF_PAD_HEIGHT
-        else:
-           paddle1_pos[1] = y
-
-        #if x < HALF_PAD_WIDTH:
-            # ball_pos[0] = HALF_PAD_WIDTH
-        #if x > WIDTH:
-            #paddle1_pos[0] = WIDTH - HALF_PAD_WIDTH
-       # else:
-            #paddle1_pos[0] = x
-
-    #Changed palm cascade to finger for better detection
-    for (x, y, w ,h) in finger:
-
     palm_cascade = cv2.CascadeClassifier('palm.xml')
     gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
@@ -198,23 +177,24 @@ while cap.isOpened():
 
     for (x, y, w ,h) in fists:
         cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0),2)
+        # left paddle
         if y < HALF_PAD_HEIGHT:
-            ball_pos[1] = HALF_PAD_HEIGHT
+            paddle1_pos[1] = HALF_PAD_HEIGHT
         if y > HEIGHT:
-            ball_pos[1] = HEIGHT - HALF_PAD_HEIGHT
+            paddle1_pos[1] = HEIGHT - HALF_PAD_HEIGHT
         else:
-            ball_pos[1] = y
+            paddle1_pos[1] = y
 
-        if x < HALF_PAD_WIDTH:
-            ball_pos[0] = HALF_PAD_WIDTH
-        if x > WIDTH:
-            ball_pos[0] = WIDTH - HALF_PAD_WIDTH
-        else:
-            ball_pos[0] = x
+        #if x < HALF_PAD_WIDTH:
+         #   paddle1_pos[0] = HALF_PAD_WIDTH
+        #if x > WIDTH:
+         #   paddle1_pos[0] = WIDTH - HALF_PAD_WIDTH
+        #else:
+         #   paddle1_pos[0] = x
 
     for (x, y, w ,h) in palms:
-
         cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0),2)
+        # right paddle
         if y < HALF_PAD_HEIGHT:
             paddle2_pos[1] = HALF_PAD_HEIGHT
         if y > HEIGHT:
