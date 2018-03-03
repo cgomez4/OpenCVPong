@@ -162,7 +162,7 @@ while cap.isOpened():
     ret, frame = cap.read()
 
     fist_cascade = cv2.CascadeClassifier('fist.xml')
-<<<<<<< HEAD
+
     finger_cascade = cv2.CascadeClassifier('fingerdec.xml')
     #palm_cascade = cv2.CascadeClassifier('palm.xml')
     gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
@@ -189,7 +189,7 @@ while cap.isOpened():
 
     #Changed palm cascade to finger for better detection
     for (x, y, w ,h) in finger:
-=======
+
     palm_cascade = cv2.CascadeClassifier('palm.xml')
     gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
@@ -213,7 +213,7 @@ while cap.isOpened():
             ball_pos[0] = x
 
     for (x, y, w ,h) in palms:
->>>>>>> b4316e7b65ffc36a126043412b74cd1a2a654d57
+
         cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0),2)
         if y < HALF_PAD_HEIGHT:
             paddle2_pos[1] = HALF_PAD_HEIGHT
