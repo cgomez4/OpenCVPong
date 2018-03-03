@@ -3,6 +3,10 @@
 import random
 import pygame, sys
 from pygame.locals import *
+import numpy as np
+import cv2
+
+
 
 pygame.init()
 fps = pygame.time.Clock()
@@ -103,16 +107,16 @@ def draw(canvas):
     #ball collison check on gutters or paddles
     if int(ball_pos[0]) <= int(BALL_RADIUS + PAD_WIDTH) and int(ball_pos[1]) in range(int(paddle1_pos[1] - HALF_PAD_HEIGHT),int(paddle1_pos[1] + HALF_PAD_HEIGHT),1):
         ball_vel[0] = -ball_vel[0]
-        ball_vel[0] *= 1.1
-        ball_vel[1] *= 1.1
+        ball_vel[0] *= 1.5
+        ball_vel[1] *= 1.5
     elif int(ball_pos[0]) <= BALL_RADIUS + PAD_WIDTH:
         r_score += 1
         ball_init(True)
         
     if int(ball_pos[0]) >= int(WIDTH + 1 - BALL_RADIUS - PAD_WIDTH) and int(ball_pos[1]) in range(int(paddle2_pos[1] - HALF_PAD_HEIGHT),int(paddle2_pos[1] + HALF_PAD_HEIGHT),1):
         ball_vel[0] = -ball_vel[0]
-        ball_vel[0] *= 1.1
-        ball_vel[1] *= 1.1
+        ball_vel[0] *= 1.5
+        ball_vel[1] *= 1.5
     elif int(ball_pos[0]) >= WIDTH + 1 - BALL_RADIUS - PAD_WIDTH:
         l_score += 1
         ball_init(False)
@@ -150,13 +154,47 @@ def keyup(event):
         paddle2_vel = 0
 
 init()
-
-
+cap = cv2.VideoCapture(0)
 #game loop
-while True:
+while cap.isOpened():
 
     draw(window)
+    ret, frame = cap.read()
 
+    fist_cascade = cv2.CascadeClassifier('fist.xml')
+    palm_cascade = cv2.CascadeClassifier('palm.xml')
+    gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+
+    fists = fist_cascade.detectMultiScale(gray, 1.3, 5)
+    palms = palm_cascade.detectMultiScale(gray, 1.3, 5)
+
+    for (x, y, w ,h) in fists:
+        cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0),2)
+        if y < HALF_PAD_HEIGHT:
+            ball_pos[1] = HALF_PAD_HEIGHT
+        if y > HEIGHT:
+            ball_pos[1] = HEIGHT - HALF_PAD_HEIGHT
+        else:
+            ball_pos[1] = y
+
+        if x < HALF_PAD_WIDTH:
+            ball_pos[0] = HALF_PAD_WIDTH
+        if x > WIDTH:
+            ball_pos[0] = WIDTH - HALF_PAD_WIDTH
+        else:
+            ball_pos[0] = x
+
+    for (x, y, w ,h) in palms:
+        cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0),2)
+        if y < HALF_PAD_HEIGHT:
+            paddle2_pos[1] = HALF_PAD_HEIGHT
+        if y > HEIGHT:
+            paddle2_pos[1] = HEIGHT - HALF_PAD_HEIGHT
+        else:
+            paddle2_pos[1] = y
+
+    cv2.imshow('frame',frame)
+        
     for event in pygame.event.get():
 
         if event.type == KEYDOWN:
@@ -169,3 +207,8 @@ while True:
             
     pygame.display.update()
     fps.tick(60)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
